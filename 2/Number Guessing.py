@@ -51,8 +51,6 @@ while lives > 0:
                     print("")
                     print(f"The number is HIGHER than {guess}")
                     lives = lives - 1
-                else:
-                    print("")
                 
         except ValueError:
             print("")
@@ -64,3 +62,7 @@ while lives > 0:
         print("[X] Closing...")
         sys.exit()
     
+if lives == 0:
+    print("")
+    print("[X] You have died!")
+    sys.exit()
