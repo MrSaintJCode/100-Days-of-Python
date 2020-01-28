@@ -97,17 +97,3 @@ while True:
         print("")
         print("[X] Closing...")
         sys.exit()
-
-
-
-#userTable = """
-#CREATE TABLE IF NOT EXISTS user(
-#    userID INTEGER PRIMARY KEY,
-#    username VARCHAR(20) NOT NULL,
-#    first_name VARCHAR(20) NOT NULL,
-#    last_name VARCHAR(20) NOT NULL,
-#    password VARCHAR(20) NOT NULL
-#);
-#"""
-
-#cursor.execute(userTable)
