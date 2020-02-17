@@ -1,6 +1,5 @@
 import requests
 import os
-import sys, time
 from appscript import app, mactypes
 from datetime import datetime
 import sqlite3
@@ -15,58 +14,55 @@ wallpaper_txt = "current_wallpaper.txt"
 url = "https://source.unsplash.com/random/2560x1600"
 export_name = f"Desktop_{datetime.now()}.jpeg"
 
-def grabNew(url, export_name):
+def grab_new(url, export_name):
     print("")
     print("* Fetching new wallpaper from the web")
     r = requests.get(url)
     with open(export_name, 'wb') as image:
         image.write(r.content)
 
-def setNew(export_name,wallpaper_txt):
+def set_new(export_name,wallpaper_txt):
     
     new_wallpaper = open(wallpaper_txt, "w+")
 
     new_wallpaper.write(export_name)
-    time.sleep(2)
     app('Finder').desktop_picture.set(mactypes.File(export_name))
     print("")
-    print("* New wallpaper has been set")
-    sys.exit()
+    return print("* New wallpaper has been set")
+    
 
-def cleanOld(wallpaper_txt):
+def clean_old(wallpaper_txt):
     current_wallpaper = open(wallpaper_txt, "r")
     wallpaper = current_wallpaper.readline()
     os.remove(wallpaper)
-    time.sleep(1)
     os.remove(wallpaper_txt)
     if os.path.isfile(wallpaper_txt):
         print("")
-        print("* Error removing current wallpaper")
-        sys.exit()
+        return print("* Error removing current wallpaper")
     else:
         print("")
-        print("* Old wallpaper removed")
+        return print("* Old wallpaper removed")
 
-def saveDesktop(wallpaper_txt):
+def save_desktop(wallpaper_txt):
     current_wallpaper = open(wallpaper_txt, "r")
     wallpaper = current_wallpaper.readline()
 
     ######## CREATING DATABASE AND TABLE ############
     database = "database/saved.db"
     table = "Images"
-    tableContent = ["imageID","imageName"]
+    table_content = ["imageID","imageName"]
 
-    newTable = f"""
+    new_table = f"""
         CREATE TABLE IF NOT EXISTS {table}(
-            {tableContent[0]} INTEGER PRIMARY KEY,
-            {tableContent[1]} VARCHAR(20) NOT NULL
+            {table_content[0]} INTEGER PRIMARY KEY,
+            {table_content[1]} VARCHAR(20) NOT NULL
         )
     """
 
     with sqlite3.connect(database) as db:
         cursor = db.cursor()
 
-    cursor.execute(newTable)
+    cursor.execute(new_table)
     ######## CREATING DATABASE AND TABLE ############
 
     with sqlite3.connect(database) as db:
@@ -78,8 +74,7 @@ def saveDesktop(wallpaper_txt):
 
     if results:
         print("")
-        print("* Image was already saved")
-        sys.exit()
+        return print("* Image was already saved")
     else:
         print("")
         print("* Saving image to the database")
@@ -88,25 +83,21 @@ def saveDesktop(wallpaper_txt):
             VALUES("{wallpaper}")
         """)
         db.commit()
-        time.sleep(1)
         find_image = (f"SELECT * FROM Images WHERE imageName = ?")
         cursor.execute(find_image,[(wallpaper)])
         results = cursor.fetchall()
         if results:
-            print("")
-            print("* Image has been saved to the db")
             ######## COPYING CURRENT WALLPAPER ########
             savedFile = "database/images/"
             shutil.copy(wallpaper, savedFile)
-            sys.exit()
+            print("")
+            return print("* Image has been saved to the db")
             ######## COPYING CURRENT WALLPAPER ########
-
         else:
             print("")
-            print("* Couldn't add image to the db")
-            sys.exit()
+            return print("* Couldn't add image to the db")
 
-def viewSaved(wallpaper_txt):
+def view_saved(wallpaper_txt):
     database = "database/saved.db"
 
     with sqlite3.connect(database) as db:
@@ -124,34 +115,31 @@ def viewSaved(wallpaper_txt):
             for image in results:
                 print(f"{image[0]} - {image[1]}")
         
-            userInput = int(input("imageID - "))
+            user_input = int(input("imageID - "))
             find_image = (f"SELECT * FROM Images WHERE imageID = ?")
-            cursor.execute(find_image,[(userInput)])
+            cursor.execute(find_image,[(user_input)])
             results = cursor.fetchall()
             if results:
                 imageTable= ("SELECT * FROM Images WHERE imageID = ?")
-                cursor.execute(imageTable,[(userInput)])
+                cursor.execute(imageTable,[(user_input)])
                 results = cursor.fetchall()
                 for image in results:
-                    global imageName
-                    imageName = image[1]
+                    image_name = image[1]
 
 
                 print("")
-                print(f"* {userInput} exist, changing wallpaper ")
-                cleanOld(wallpaper_txt)
-                time.sleep(1)
-                savedFile = f"database/images/{imageName}"
-                shutil.copy(savedFile, ".")
-                time.sleep(1)
-                setNew(imageName,wallpaper_txt)
+                print(f"* {user_input} exist, changing wallpaper ")
+                clean_old(wallpaper_txt)
+                saved_file = f"database/images/{image_name}"
+                shutil.copy(saved_file, ".")
+                set_new(image_name,wallpaper_txt)
                 break
 
             else:
                 print("")
                 print(f"{userInput} is not valid")
 
-def deleteSaved():
+def delete_saved():
     database = "database/saved.db"
 
     with sqlite3.connect(database) as db:
@@ -198,30 +186,25 @@ if __name__ == '__main__':
                 if os.path.isfile(wallpaper_txt):
                     print("")
                     print("* Removing pervious wallpaper")
-                    cleanOld(wallpaper_txt)
-                    time.sleep(1)
-                    grabNew(url,export_name)
-                    time.sleep(1)
-                    setNew(export_name,wallpaper_txt)
+                    clean_old(wallpaper_txt)
+                    grab_new(url,export_name)
+                    set_new(export_name,wallpaper_txt)
                 else:
-                    grabNew(url,export_name)
-                    time.sleep(1)
-                    setNew(export_name,wallpaper_txt)
+                    grab_new(url,export_name)
+                    set_new(export_name,wallpaper_txt)
             elif userInput == 2:
-                saveDesktop(wallpaper_txt)
+                save_desktop(wallpaper_txt)
             elif userInput == 3:
-                viewSaved(wallpaper_txt)
+                view_saved(wallpaper_txt)
             elif userInput == 4:
-                deleteSaved()
+                delete_saved()
             else:
                 print("")
                 print("* Input invalid")
         except KeyboardInterrupt:
             print("")
             print("Bye! :)")
-            sys.exit()
     except (ValueError,OSError) as reason:
         print("")
         print("---- The following error occured ----")
         print(reason)
-
